@@ -5,17 +5,21 @@ from __future__ import print_function
 from invoke import run, task
 from invoke.util import log
 
+from py.path import local
+
 
 @task
 def clean():
     """clean - remove build artifacts."""
-    run('rm -rf build/')
-    run('rm -rf dist/')
-    run('rm -rf {{ cookiecutter.repo_name|replace('-', '_') }}.egg-info')
-    run('find . -name __pycache__ -delete')
-    run('find . -name *.pyc -delete')
-    run('find . -name *.pyo -delete')
-    run('find . -name *~ -delete')
+    for dirname in ['build',
+                    'dist',
+                    'vanguard.egg-info',
+                    "{{ cookiecutter.repo_name|replace('-', '_') }}.egg-info"]:
+        dirpath = local(dirname)
+        if dirpath.exists():
+            dirpath.remove(rec=1)
+    for mask in ["__pycache__", "*.pyc", "*.pyo", "*~"]:
+        map(local.remove, local().visit(mask))
 
     log.info('cleaned up')
 
